@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Django Fruit API</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f8f9fa;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 {
+      color: #333;
+    }
+    ul {
+      list-style-type: none;
+      padding: 0;
+    }
+    li {
+      background-color: #fff;
+      margin: 10px auto;
+      padding: 10px;
+      width: 300px;
+      border-radius: 5px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .form-section {
+      margin-top: 30px;
+      background: #fff;
+      padding: 20px;
+      width: 320px;
+      margin-left: auto;
+      margin-right: auto;
+      border-radius: 5px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+    input {
+      margin: 5px;
+      padding: 8px;
+      width: 90%;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      margin-top: 10px;
+      padding: 8px 20px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button.delete-btn {
+      background-color: #dc3545;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Fruit List</h1>
+  <button onclick="getFruits()">Load Fruits</button>
+  <ul id="fruitList"></ul>
+
+  <div class="form-section">
+    <h2>Add New Fruit</h2>
+    <input type="text" id="name" placeholder="Name">
+    <input type="text" id="colour" placeholder="Colour">
+    <input type="number" id="calories" placeholder="Calories">
+    <button onclick="addFruit()">Add Fruit</button>
+  </div>
+
+  <script>
+    const apiUrl = "http://127.0.0.1:8000/api/apiapp/";
+
+    function getFruits() {
+      fetch(apiUrl)
+        .then(res => res.json())
+        .then(data => {
+          const list = document.getElementById("fruitList");
+          list.innerHTML = "";
+          data.forEach(fruit => {
+            const li = document.createElement("li");
+            li.innerHTML = `
+              ${fruit.name} (${fruit.colour}) - ${fruit.calories} cal
+              <button class="delete-btn" onclick="deleteFruit(${fruit.id})">Delete</button>
+            `;
+            list.appendChild(li);
+          });
+        })
+        .catch(err => console.error("GET error:", err));
+    }
+
+    function addFruit() {
+      const name = document.getElementById("name").value;
+      const colour = document.getElementById("colour").value;
+      const calories = document.getElementById("calories").value;
+
+      const fruitData = {
+        name: name,
+        colour: colour,
+        calories: calories
+      };
+
+      fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(fruitData)
+      })
+      .then(res => res.json())
+      .then(data => {
+        console.log("Added:", data);
+        getFruits(); // Refresh list
+      })
+      .catch(err => console.error("POST error:", err));
+    }
+
+    function deleteFruit(id) {
+      fetch(`${apiUrl}${id}/`, {
+        method: "DELETE"
+      })
+      .then(() => {
+        console.log("Deleted fruit ID:", id);
+        getFruits(); // Refresh list
+      })
+      .catch(err => console.error("DELETE error:", err));
+    }
+  </script>
+</body>
+</html>
